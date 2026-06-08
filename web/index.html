@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lighthouse Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header class="dashboard-header">
+            <h1>ðŸ”­ Lighthouse</h1>
+            <span class="status-badge" id="statusBadge">Disconnected</span>
+        </header>
+        <main class="dashboard-main">
+            <section class="panel sessions-panel">
+                <h2>Sessions</h2>
+                <ul id="sessionList"></ul>
+                <button id="newSessionBtn">+ New Session</button>
+            </section>
+            <section class="panel chat-panel">
+                <div id="chatMessages" class="chat-messages"></div>
+                <div class="chat-input-area">
+                    <textarea id="chatInput" placeholder="Type your message..."></textarea>
+                    <button id="sendBtn">Send</button>
+                </div>
+            </section>
+            <section class="panel metrics-panel">
+                <h2>Metrics</h2>
+                <div id="metricsDisplay">
+                    <div class="metric-card">
+                        <span class="metric-label">Tokens/s</span>
+                        <span class="metric-value" id="tokensPerSec">--</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Memory</span>
+                        <span class="metric-value" id="memoryUsage">--</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Uptime</span>
+                        <span class="metric-value" id="uptimeDisplay">--</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
