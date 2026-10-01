@@ -1,93 +1,191 @@
-# 🦙 llama.cpp/server Terminal Client
+# 🦙 Lighthouse: High-Performance C++ Terminal Client & RAG Engine for llama.cpp
 
-This is a lightweight terminal interface alternative for llama.cpp server following an outline of a chat script.
+[![C++ Standard](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-ready-blueviolet.svg)](Dockerfile)
 
-* Many commands for manipulate the conversation flow and also debug it.
-* Chat templates and personal prompts can be created and customized.
-* Load/Save conversation system.
-* Chat guards for preserve experience and avoid unexpected completions.
-* Open AI completion support
-* Compilable for Windows and Linux.
+**Lighthouse** is a lightweight, ultra-fast, and modular C++ terminal client, REST server middleware, and Retrieval-Augmented Generation (RAG) framework designed to interface directly with `llama.cpp` server backends.
 
-*link to llama.cpp project server:* https://github.com/ggerganov/llama.cpp/tree/master/examples/server
+Built for performance and flexibility, Lighthouse combines an interactive CLI terminal experience with full-featured session management, SQLite persistence, SSE token streaming, JWT authentication, and vector embeddings for local context-aware AI applications.
 
-![Chat style view](/screenshots/screenshot.png)
+---
 
-Chat templates can be added and customized.
+## ✨ Key Features
 
-![Chat style view](/screenshots/prompt_templates.png)
-![Chat style view](/screenshots/screenshot2.png)
+- 💻 **Interactive Terminal CLI**: Rich interactive console with real-time token streaming, colorized multi-actor roleplay support, and live thought processing display (`pthink`).
+- ⚡ **REST API & SSE Streaming**: Server-Sent Events (SSE) streaming client and OpenAI-compatible endpoint adapters for low-latency token generation.
+- 🔐 **Auth & Middleware Pipeline**: Token handling, custom header processing, and JWT validation middleware for secure multi-tenant deployments.
+- 💾 **SQLite Session & History Persistence**: Persistent session state, conversational chat history management, automated schema migration, and adaptive context trimming.
+- 🧠 **Vector Search & Local RAG**: Document ingestion pipeline, paragraph chunking, vector indexing, similarity search, and dynamic prompt assembly.
+- 📊 **Metrics & Monitoring**: Real-time throughput (tokens/sec), generation latency tracking, system memory monitoring, and automated logging.
+- 🌐 **Web Dashboard**: Modern web interface (`/web`) for monitoring server status, managing sessions, and testing completions.
+- 🐳 **Production Docker & CI/CD**: Ready-to-use `Dockerfile` and `docker-compose.yml` with automated GitHub Actions workflow for static cross-compilation.
 
-## How to Use
-#### Configuration files:
-* **prompts.json**  Contains all personal prompts definitions. Supports system prompt and an actor system.
-* **params.json**  All prompt configurations profiles.
-* **templates.json**  All chat templates.
+---
 
-#### Execultable Arguments:
--  --prompt *prompt name*            (default: default)
--  --param-profile *profile name*       (default: default)
--  --chat-template *prompt template*  (default: None)
--  --no-chat-tags      Disable chat style actors tags (ex:  'User:' 'Someone:')
--  --no-chat-guards: Disable the chat guards (default: false)
--  --ip <ip address>                    (default: 127.0.0.1)
--  --port <port>                        (default: 8080)
--  --debug Debug messages into log file (default: false)
+## 🏗️ Architecture Overview
 
-#### Command support:
-To input a command, simply insert `/command` followed by the desired command.
+```
+ ┌────────────────────────────────────────────────────────┐
+ │            Clients: Terminal CLI / Web Dashboard       │
+ └──────────────────────────┬─────────────────────────────┘
+                            │
+ ┌──────────────────────────▼─────────────────────────────┐
+ │               Lighthouse Middleware Layer              │
+ │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+ │  │ JWT Auth     │  │ Stream Guard │  │ SSE Client   │  │
+ │  └──────────────┘  └──────────────┘  └──────────────┘  │
+ └──────────────────────────┬─────────────────────────────┘
+                            │
+ ┌──────────────────────────▼─────────────────────────────┐
+ │                Core State & Local RAG                  │
+ │  ┌──────────────────────┐   ┌──────────────────────┐   │
+ │  │ SQLite Persistence   │   │ Vector Embeddings    │   │
+ │  │ & Session Manager    │   │ & Chunk Ingestion    │   │
+ │  └──────────────────────┘   └──────────────────────┘   │
+ └──────────────────────────┬─────────────────────────────┘
+                            │ (HTTP / SSE / REST)
+ ┌──────────────────────────▼─────────────────────────────┐
+ │               llama.cpp Server Backend                 │
+ └────────────────────────────────────────────────────────┘
+```
 
-#### Command List:
- 📝Conversation manipulation:
-- **narrator**: Lets to narrator generate a narration.
-- **actor** or **now** Choice who will talk now. If doesn't exists it will be created. (ie: /now  Einstein)
-- **as**: Pretend to be an actor and prompt it. (ex: /as Einstein)
-- **talkto**: Talk to a determinated character. It will swtich the current talking actor. (ie: /talkto Monica)
-- **insert** or **i**: Multiline mode mode, write "EOL" or "eol" then enter to submit the content. Also if you prefer, can specify a file name to read and insert the content directly.
-- **retry** or **r**: Retry the last completion.
-- **continue**: Continue the completion without intervention. (The assistant will continue talking)
-- **edit**: Edit the assistant last message to re-submit it.
-- **undolast**: Undo only the last completion.
-- **undo** or **u**: Undo the last completion and user input.
+---
 
-🗣️Conversation mode:
-- **chat on/off:** Turn on/off chat tags.
-- **pthink on/off:** Show/hidde thoughts during model reasoning (default: hidden).
+## 🚀 Getting Started
 
-💾Conversation saving:
-- **save (chatname):** Save the chat. (without extension)
-- **load (chatname):** Load a previous saved chat.
+### Prerequisites
 
-⚙️Manage configurations:
-- **help** Get commands help (this page)
-- **redraw:** Redraw the chat content.
-- **reset:** Reset the entire chat.
-- **quit** or **q**: Exit the program.
-- **lprompt:** Print the current prompt that will be send.
-- **lactors:** Print current actors.
-- **lparams:** Print the current parameters.
-- **rparams** Reload current parameter profile.
-- **rtemplate** Reload current template profile.
-- **sparam (parameter profile name)** Load and set param profile in runtime from param.json.
-- **stemplate (template name)** Load and set prompt template in runtime from template.json.
-- **ssystem (input new line)** Set new system prompt (from begin).
-- **sprompt (prompt name)** Load and set custom prompt in runtime from prompt.json.
+- **GCC / G++**: Supporting C++17 (`g++ 9.4+` on Linux or MinGW `g++ 14+` on Windows)
+- **Make**: Standard POSIX make or MinGW make
+- **llama.cpp server**: A running instance of `llama.cpp` server (default endpoint: `http://127.0.0.1:8080`)
 
-#### 💂About the chat guards:
-The chat guards adds the prompt template tokens into stop words array.
+### Building from Source
 
-#### 🖋️About OpenAI Completion style
-With this mode, chat tags are not supported also messages preffix. The chat template is choiced by the server based on built in model specifications.
+Clone the repository and initialize submodules:
 
-#### ✂️Shortcut:
-You can stop the completion using CTRL+C signal.
+```bash
+git clone https://github.com/ryqtor/lighthouse.git
+cd lighthouse
+git submodule init
+git submodule update
+```
 
-#### 🧱Instructions to build
+#### Build Standard Executable
+```bash
+make chat
+```
 
-    git submodule init
-    git submodule update
-    make static
+#### Build Static Binary (Recommended for production)
+```bash
+make static
+```
 
-## 🧾**Tested on**
+The compiled executable and default runtime configs will be output to the `dist/` directory.
 
-<table><tbody><tr><td>Windows</td><td>GCC</td><td>g++ (x86_64-win32-seh-rev0, Built by MinGW-Builds project) 14.2.0</td></tr><tr><td>Linux</td><td>GCC</td><td>gcc (Ubuntu 9.4.0-1ubuntu1~20.04.1) 9.4.0</td></tr></tbody></table>
+---
+
+## 💻 Usage & Executable Options
+
+Run the binary from the project root or `dist/` directory:
+
+```bash
+./dist/chat --prompt default --ip 127.0.0.1 --port 8080
+```
+
+### Command-Line Arguments
+
+| Flag | Description | Default |
+| :--- | :--- | :--- |
+| `--prompt <name>` | Select prompt profile from `prompts.json` | `default` |
+| `--param-profile <name>` | Select parameter profile from `params.json` | `default` |
+| `--chat-template <name>` | Select chat formatting template from `templates.json` | `None` |
+| `--ip <address>` | Server IP address | `127.0.0.1` |
+| `--port <port>` | Server port number | `8080` |
+| `--no-chat-tags` | Disable actor tags (e.g. `User:`, `Assistant:`) | `false` |
+| `--no-chat-guards` | Disable stream guard token stopping | `false` |
+| `--debug` | Enable verbose logging into `lighthouse.log` | `false` |
+
+---
+
+## 📝 Interactive Terminal Slash Commands
+
+Inside the terminal shell, prefix commands with `/`:
+
+### 🗣️ Conversation & Roleplay
+- `/narrator` — Trigger a narration completion from the narrator persona.
+- `/actor <name>` or `/now <name>` — Set or create the active speaking persona (e.g. `/now Einstein`).
+- `/as <name>` — Prompt as a specific character persona (e.g. `/as Einstein`).
+- `/talkto <character>` — Direct the dialogue to a specific character.
+- `/insert` or `/i` — Enter multiline input mode. Type `EOL` on a new line or specify a file path to insert content.
+- `/retry` or `/r` — Regenerate the last assistant completion.
+- `/continue` — Resume generation without additional user input.
+- `/edit` — Edit the last assistant message.
+- `/undo` or `/u` — Revert the last user message and assistant turn.
+- `/undolast` — Revert only the last assistant completion.
+
+### ⚙️ Engine Settings & Views
+- `/chat on|off` — Toggle displaying conversation actor tags.
+- `/pthink on|off` — Show or hide internal reasoning thoughts during generation.
+- `/lprompt` — Print the formatted prompt sent to the LLM backend.
+- `/lactors` — List active conversation actors.
+- `/lparams` — Display active inference parameters.
+- `/rparams` — Reload active parameter profile from disk.
+- `/rtemplate` — Reload active template profile from disk.
+- `/sparam <name>` — Switch active parameter profile at runtime.
+- `/stemplate <name>` — Switch active template profile at runtime.
+- `/sprompt <name>` — Switch prompt configuration profile at runtime.
+- `/ssystem <prompt>` — Set a new root system prompt.
+- `/save <session_name>` — Save active session to SQLite persistence.
+- `/load <session_name>` — Load an existing session state.
+- `/redraw` — Redraw active conversation screen.
+- `/reset` — Reset session state and clear message history.
+- `/help` — Show command reference guide.
+- `/quit` or `/q` — Exit the application.
+
+---
+
+## ⚙️ Configuration Files
+
+Lighthouse uses JSON configuration files located in `config/`:
+
+- **`config/prompts.json`**: Defs for system prompts, character actors, and prompt behavior.
+- **`config/params.json`**: Inference sampling settings (`temperature`, `top_p`, `top_k`, `penalty_repeat`, `max_tokens`).
+- **`config/templates.json`**: Pre-formatted chat templates (ChatML, Llama-3, Mistral, Alpaca, etc.).
+
+---
+
+## 🐳 Running with Docker
+
+### Using Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+### Manual Docker Build & Run
+
+```bash
+docker build -t lighthouse:latest .
+docker run -it --network="host" lighthouse:latest
+```
+
+---
+
+## 🧪 Development & Testing
+
+Run local build verification:
+
+```bash
+make clean && make static
+```
+
+CI workflows are configured under `.github/workflows/ci.yml` for continuous integration on both Windows and Linux toolchains.
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
